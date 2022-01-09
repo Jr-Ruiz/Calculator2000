@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,22 +14,45 @@ namespace Calculator2000
         {
             InitializeComponent();
             Display.Focus();
+            //al inicializar la calculadora se deshabilitan los operadores y coma
+            Porcentaje.IsEnabled = false;
+            Div.IsEnabled = false;
+            Mult.IsEnabled = false;
+            Resta.IsEnabled = false;
+            Suma.IsEnabled = false;
+            BComa.IsEnabled = false;
+            Igual.IsEnabled = false;
         }
 
         static class Globales
         {
             public static string num_parcial = "";
             public static List<double> numeros = new List<double>(); //Lista para almacenar los números de la operación
-            public static List<string> operadores = new List<string>(); //Lista par almancenar los operadores
+            public static List<string> operadores = new List<string>(); //Lista para almancenar los operadores
             public static char operador;
         }
 
         private void escribir(object sender, RoutedEventArgs e)
         {
             Button boton = sender as Button;
+            Display.Content += boton.Content.ToString();
+            resultado.Content = Display.Content;
 
-            Display.Text = Display.Text + boton.Content.ToString();
-            resultado.Content = Display.Text;
+            //llamada al metodo para inhabilitar los operadores o rehabilitarlos 
+            inhabilitarOperadores();
+
+            //si el boton clicado es un operador, tambíen hay que desactivar los botones de operacion
+            if (boton.Name == "Porcentaje" || boton.Name == "Div" || boton.Name == "Mult" ||
+                boton.Name == "Resta" || boton.Name == "Suma" || boton.Name == "BComa")
+            {
+                Porcentaje.IsEnabled = false;
+                Div.IsEnabled = false;
+                Mult.IsEnabled = false;
+                Resta.IsEnabled = false;
+                Suma.IsEnabled = false;
+                BComa.IsEnabled = false;
+                Igual.IsEnabled = false;
+            }
         }
 
         private void calcular(object sender, RoutedEventArgs e)
@@ -37,16 +60,19 @@ namespace Calculator2000
 
             Button boton = sender as Button;
 
-            char[] caracter = Display.Text.ToCharArray(); //convertimos el string del Display en un array de caracteres
+            //convertimos el string del Display en un array de caracteres
+            char[] caracter = Display.Content.ToString().ToCharArray();
 
-            for (int i = 0; i < Display.Text.Length; i = i + 1)
-            {
+            //Recorremos el array de caracteres
+            for (int i = 0; i < Display.Content.ToString().Length; i++)
+                {
                 Globales.operador = caracter[i];
-                //Recorremos el array de caracteres
+                    
                 switch (caracter[i])
                 {
+                    //llamamos la función que rellena las listas
                     case 'x':
-                        rellenar(caracter[i]);//llamamos la función que rellena las listas
+                        rellenar(caracter[i]);
                         break;
                     case '/':
                         rellenar(caracter[i]);
@@ -70,20 +96,12 @@ namespace Calculator2000
 
         private void calculo()
         {
-            try
-            {
-                Globales.numeros.Add(Convert.ToDouble(Globales.num_parcial));
-                Globales.num_parcial = "";
-            }
-            catch
-            {
-                resultado.Content = "EXPRESIÓN MAL FORMADA";
-            }
-
+            Globales.numeros.Add(Convert.ToDouble(Globales.num_parcial));
+            Globales.num_parcial = "";
+          
             while (Globales.operadores.Contains("x") || Globales.operadores.Contains("/") || Globales.operadores.Contains("%"))
             {
-
-                for (int i = 0; i < Globales.operadores.Count; i = i + 1)
+                for (int i = 0; i < Globales.operadores.Count; i++)
                 {
                     if (Globales.operadores[i] == "x")
                     {
@@ -101,17 +119,23 @@ namespace Calculator2000
                     }
                     else if (Globales.operadores[i] == "%")
                     {
-                        Globales.numeros[i] = Globales.numeros[i] * Globales.numeros[i + 1] / 100;
-                        Globales.numeros.RemoveAt(i + 1);
-                        Globales.operadores.RemoveAt(i);
+                        try //este try-catch no es necesario porque el error no salta nunca
+                        {
+                            Globales.numeros[i] = Globales.numeros[i] * Globales.numeros[i + 1] / 100;
+                            Globales.numeros.RemoveAt(i + 1);
+                            Globales.operadores.RemoveAt(i);
+                        }
+                        catch (Exception ex)
+                        {
+                            resultado.Content = "ERROR: " + ex.ToString;
+                        }
                     }
-
                 }
             }
+
             while (Globales.operadores.Contains("+") || Globales.operadores.Contains("-"))
             {
-
-                for (int i = 0; i < Globales.operadores.Count; i = i + 1)
+                for (int i = 0; i < Globales.operadores.Count; i++)
                 {
                     if (Globales.operadores[i] == "+")
                     {
@@ -130,51 +154,83 @@ namespace Calculator2000
 
                 }
             }
-;
-            try
-            {
-                Pantalla.Items.Add(Display.Text + "=" + Globales.numeros[0]);
-                resultado.Content = Globales.numeros[0];
-                Display.Text = "";
-                Globales.numeros.RemoveAt(0);
-                //reiniciar();
-            }
-            catch
-            {
-                resultado.Content = "EXPRESIÓN MAL FORMADA";
-            }
+            Pantalla.Items.Add(Display.Content + "=" + Globales.numeros[0]);
+            resultado.Content = Globales.numeros[0];
+            Display.Content = "";
+            Globales.numeros.RemoveAt(0);
+ 
+            //llamada al metodo para inhabilitar los operadores una vez que se envíe la operacion al item
+            inhabilitarOperadores();
         }
-        private void rellenar(char operador) //A partir dela información del Display crea las listas
 
+        private void rellenar(char operador) //A partir de la información del Display crea las listas
         {
-            if (Globales.num_parcial != "")
-            {
-                Globales.operadores.Add(operador.ToString());
-                Globales.numeros.Add(Convert.ToDouble(Globales.num_parcial));
-                Globales.num_parcial = "";
-            }
-            else
-            {
-                resultado.Content = "EXPRESIÓN MAL FORMADA";
-            }
+            Globales.operadores.Add(operador.ToString());
+            Globales.numeros.Add(Convert.ToDouble(Globales.num_parcial));            
+            Globales.num_parcial = "";
         }
 
         private void borrar(object sender, RoutedEventArgs e)
         {
-            if (Display.Text.Length > 0)
+            //try-catch para controlar la excepcion que saltaba al darle a borrar al inicializar la calculadora 
+            try
             {
-                Display.Text = Display.Text.Remove(Display.Text.Length - 1);
-                resultado.Content = Display.Text;
+                if (Display.Content.ToString().Length > 0)
+                {
+                    Display.Content = Display.Content.ToString().Remove(Display.Content.ToString().Length - 1);
+                    resultado.Content = Display.Content;
+                }
+            } catch (NullReferenceException ex) {
+                //este mensaje no aparece porque aparece el del segundo try-catch dentro del metodoinhabilitarOperadores()
+                resultado.Content = "ERROR: " + ex.ToString;
             }
+             //llamada al metodo para inhabilitar los operadores una vez se borre contenido
+             inhabilitarOperadores();
         }
 
         private void reiniciar(object sender, RoutedEventArgs e)
         {
-            Display.Text = "";
-            resultado.Content = Display.Text;
+            Display.Content = "";
+            resultado.Content = Display.Content;
             Globales.num_parcial = "";
             Globales.numeros.Clear();
             Globales.operadores.Clear();
+            //llamada al metodo para inhabilitar los operadores una vez se borre todo el contenido
+            inhabilitarOperadores();
+        }
+
+        //metodo void para inhabilitar los operadores cuando no hay contenido en el Display
+        private void inhabilitarOperadores()
+        {
+           //try-catch para controlar la excepcion que saltaba al darle a borrar al inicializar la calculadora 
+            try
+            {
+                //si no hay contenido en el Display se inhabilitan los botones de operación
+                if (Display.Content.ToString().Length == 0)
+                {
+                    Porcentaje.IsEnabled = false;
+                    Div.IsEnabled = false;
+                    Mult.IsEnabled = false;
+                    Resta.IsEnabled = false;
+                    Suma.IsEnabled = false;
+                    BComa.IsEnabled = false;
+                    Igual.IsEnabled = false;
+                }
+                else   //de lo contrario, se vuelven a habilitar
+                {
+                    Porcentaje.IsEnabled = true;
+                    Div.IsEnabled = true;
+                    Mult.IsEnabled = true;
+                    Resta.IsEnabled = true;
+                    Suma.IsEnabled = true;
+                    BComa.IsEnabled = true;
+                    Igual.IsEnabled = true;
+                }
+            } catch(NullReferenceException ex)
+            {
+                resultado.Content = "ERROR: No hay contenido que borrar!";
+            }
+
         }
     }
 }
