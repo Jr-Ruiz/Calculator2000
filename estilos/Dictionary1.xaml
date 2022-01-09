@@ -8,7 +8,7 @@
     <Style x:Key="Naranja" TargetType="Button" BasedOn="{StaticResource Botones}">
         <Setter Property="Foreground" Value="Orange" />
     </Style>
-    <Style x:Key="Resaltado" TargetType="TextBox">
+    <Style x:Key="Resultado" TargetType="Label">
         <Setter Property="FontSize" Value="20" />
         <Setter Property="HorizontalAlignment" Value="Right"/>
     </Style>
