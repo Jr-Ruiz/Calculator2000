@@ -26,7 +26,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <ListBox Grid.Row="0" x:Name="Pantalla"/>
-            <TextBox Grid.Row="1" x:Name="Display"  Style="{StaticResource Resaltado}" />
+            <Label Grid.Row="1" x:Name="Display"  Style="{StaticResource Resultado}" />
 
             <Label Grid.Row="2" x:Name="resultado">
                 <!--<Label.Content>
